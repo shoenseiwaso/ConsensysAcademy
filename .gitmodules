@@ -1,0 +1,3 @@
+[submodule "net43"]
+	path = net43
+	url = git@github.com:curvegrid/easy-geth-dev-mode.git
