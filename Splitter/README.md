@@ -1,6 +1,6 @@
 # Consensys Academy: Splitter
 
-# Requirements
+## Base requirements
 
 You will create a smart contract named Splitter whereby:
 
@@ -11,7 +11,7 @@ You will create a smart contract named Splitter whereby:
 - [ ] we can send ether to it from the web page
 - [ ] It would be even better if you could team up with different people impersonating Alice, Bob and Carol, all cooperating on a test net.
 
-Stretch goals:
+## Stretch goals:
 
 - [ ] add a kill switch to the whole contract
 - [ ] make the contract a utility that can be used by David, Emma and anybody with an address
