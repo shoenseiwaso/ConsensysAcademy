@@ -96,23 +96,6 @@ contract Splitter {
 		return true;
 	}
 
-	// // check if this splitter exists
-	// function isSplitter(address fromUserAddr)
-	// 	public
-	// 	constant
-	// 	returns (bool exists)
-	// {
-	// 	if (splitterIndex.length == 0) {
-	// 		return false;
-	// 	}
-
-	// 	if (splitterIndex[splitterStructs[fromUserAddr].index] == fromUserAddr) {
-	// 		return true;
-	// 	}
-
-	// 	return false;
-	// }
-
 	function kill() onlyByOwner() {
 		enabled = false;
 	}
