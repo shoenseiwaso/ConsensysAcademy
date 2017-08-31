@@ -66,7 +66,7 @@ contract('Splitter', function(accounts) {
   // revert() behaves differently from throw and returns unused gas to caller.
   it("should refuse to add a duplicate splitter (same 'from' address)", function () {
     return contract.insertSplitter(
-      u.carol.addr, 
+      u.alice.addr, 
       u.alice.name, 
       u.bob.addr, 
       u.bob.name, 
