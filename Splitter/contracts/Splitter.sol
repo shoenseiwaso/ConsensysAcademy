@@ -24,11 +24,13 @@ contract Splitter {
 	mapping (address => SplitterStruct) private splitterStructs;
 	address[] private splitterIndex;
 
+	// global state variables will be assigned on contract creation
 	address public owner = msg.sender;
 	bool public enabled = true;
 
-//	event Transfer(address indexed _from, address indexed _to, uint256 _value);
+	event InsertedSplitter(uint index);
 
+	// TBD: do we need this to prevent some kind of weird overriding scenario?
 	function Splitter() {
 	}
 
@@ -88,6 +90,8 @@ contract Splitter {
 
 		// update index array and index of new splitter struct in one step, saving on gas
 		splitterStructs[fromUserAddr].index = splitterIndex.push(fromUserAddr) - 1;
+
+		InsertedSplitter(splitterIndex.length - 1);
 
 		return true;
 	}
