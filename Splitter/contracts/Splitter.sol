@@ -1,5 +1,12 @@
 pragma solidity ^0.4.4;
 
+// Consensys Academy 2017
+// Jeff Wentworth (github: shoenseiwaso)
+// Module 4: Splitter
+//
+// With thanks to Rob Hitchens' article on Solidity CRUD at:
+// https://medium.com/@robhitchens/solidity-crud-part-1-824ffa69509a
+
 contract Splitter {
 	struct ToUserStruct {
 		address addr;
@@ -39,6 +46,17 @@ contract Splitter {
 		_;
 	}
 
+	// based on: https://ethereum.stackexchange.com/questions/11039/how-can-you-check-if-a-string-is-empty-in-solidity
+	function isEmptyString(string s) returns(bool success) {
+		bytes memory b = bytes(s);
+
+		if (b.length == 0) {
+			return true;
+		}
+
+		return false;
+	}
+
 	function insertSplitter(
 		address fromUserAddr,
 		string fromUserName, 
@@ -53,8 +71,11 @@ contract Splitter {
 	{
 		require(enabled);
 		require(msg.value > 0);
+		require(!isEmptyString(fromUserName));
+		require(!isEmptyString(toUser1Name));
+		require(!isEmptyString(toUser2Name));
 
-		// divide value between the two users, favouring the first user in the case of 
+		// divide value between the two users, favouring the first user in the case of an odd amount of wei
 		uint valueSplit2 = msg.value / 2;
 		uint valueSplit1 = msg.value - valueSplit2;
 
