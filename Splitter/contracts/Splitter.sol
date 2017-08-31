@@ -33,7 +33,7 @@ contract Splitter {
 	}
 
 	// additions or updates can only be made by transaction originator or contract owner
-	modifier onlyBy(address _account)
+	modifier onlyByAuthorized(address _account)
 	{
 		require(msg.sender == _account || msg.sender == owner);
 		_;
@@ -66,7 +66,7 @@ contract Splitter {
 		string toUser2Name)
 		public
 		payable
-		onlyBy(fromUserAddr)
+		onlyByAuthorized(fromUserAddr)
 		returns(bool success)
 	{
 		require(enabled);
