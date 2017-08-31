@@ -3,6 +3,8 @@ var Splitter = artifacts.require("./Splitter.sol");
 contract('Splitter', function(accounts) {
   var contract;
 
+  var owner = eth.accounts[0];
+
   var u = {
     alice: {name: "Alice", addr: accounts[0]},
     bob: {name: "Bob", addr: accounts[1]},
