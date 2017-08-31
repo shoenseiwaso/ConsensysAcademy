@@ -36,19 +36,19 @@ contract('Splitter', function(accounts) {
     .then(function(txn) {
       return contract.getSplitterAtIndex(0);
     })
-    .then(function(
-      _fromUserAddr,
-      _fromUserName,
-      _toUser1Addr,
-      _toUser1Name,
-      _toUser1Balance,
-      _toUser2Addr,
-      _toUser2Name,
-      _toUser2Balance
-    ) {
+    .then(function(v) {
       // compute expected balances, handling case where test value is an odd number
       var user2ExpectedBalance = testValueEven / 2;
       var user1ExpectedBalance = testValueEven - user2ExpectedBalance;
+
+      var _fromUserAddr = v[0];
+      var _fromUserName = v[1];
+      var _toUser1Addr = v[2];
+      var _toUser1Name = v[3];
+      var _toUser1Balance = v[4];
+      var _toUser2Addr = v[5];
+      var _toUser2Name = v[6];
+      var _toUser2Balance = v[7];
 
       assert.equal(_fromUserAddr.toString(10), u.alice.addr.toString(10), "Incorrect from user address");
       assert.equal(_fromUserName, u.alice.name, "Incorrect from user name");
