@@ -49,7 +49,7 @@ contract Splitter {
 	}
 
 	// based on: https://ethereum.stackexchange.com/questions/11039/how-can-you-check-if-a-string-is-empty-in-solidity
-	function isEmptyString(string s) returns(bool success) {
+	function isEmptyString(string s) private constant returns(bool success) {
 		bytes memory b = bytes(s);
 
 		if (b.length == 0) {
