@@ -1,5 +1,17 @@
 var Splitter = artifacts.require("./Splitter.sol");
 
+function getTransactionError(func) {
+  return Promise.resolve().then(func)
+    .then(function(txid) {
+      var tx = web3.eth.getTransaction(txid);
+      var txr = web3.eth.getTransactionReceipt(txid);
+      if (txr.gasUsed === tx.gas) throw new Error("all gas used");
+    })
+    .catch(function(err) {
+      return err;
+    });
+}
+
 contract('Splitter', function(accounts) {
   var contract;
 
@@ -61,32 +73,29 @@ contract('Splitter', function(accounts) {
     });
   });
 
-  // see: https://ethereum.stackexchange.com/a/17707/10772
+  // for handling throws with geth via Truffle, see: https://stackoverflow.com/a/40386159/3649726
   it("should refuse to add a duplicate splitter (same from address)", function () {
-    return contract.insertSplitter(
-      u.alice.addr, 
-      u.alice.name, 
-      u.bob.addr, 
-      u.bob.name, 
-      u.carol.addr, 
-      u.carol.name,
-      {from: u.alice.addr, value: testValueEven})
-    .then(function(txn) {
+    return getTransactionError(function() {
       return contract.insertSplitter(
-        u.alice.addr, 
+        u.carol.addr, 
         u.alice.name, 
         u.bob.addr, 
         u.bob.name, 
         u.carol.addr, 
         u.carol.name,
         {from: u.alice.addr, value: testValueEven})
-    })
-    .then(assert.fail)
-    .catch(function(error) {
-            assert(
-                error.message.indexOf('out ofo gas') >= 0,
-                'Should have refused to insert a duplicate splitter: ' + error.message
-            )
+      .then(function(txn) {
+        return contract.insertSplitter(
+          u.alice.addr, 
+          u.alice.name, 
+          u.bob.addr, 
+          u.bob.name, 
+          u.carol.addr, 
+          u.carol.name,
+          {from: u.alice.addr, value: testValueEven})
+      });
+    }).then(function(err) {
+        assert.isDefined(err, "transaction should have thrown");
     });
   });
 });
