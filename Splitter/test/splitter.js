@@ -1,17 +1,5 @@
 var Splitter = artifacts.require("./Splitter.sol");
 
-function getTransactionError(func) {
-  return Promise.resolve().then(func)
-    .then(function(txid) {
-      var tx = web3.eth.getTransaction(txid);
-      var txr = web3.eth.getTransactionReceipt(txid);
-      if (txr.gasUsed === tx.gas) throw new Error("all gas used");
-    })
-    .catch(function(err) {
-      return err;
-    });
-}
-
 contract('Splitter', function(accounts) {
   var contract;
 
@@ -73,29 +61,32 @@ contract('Splitter', function(accounts) {
     });
   });
 
-  // for handling throws with geth via Truffle, see: https://stackoverflow.com/a/40386159/3649726
-  it("should refuse to add a duplicate splitter (same from address)", function () {
-    return getTransactionError(function() {
+  // For handling throws with geth via Truffle, see: https://stackoverflow.com/a/40386159/3649726
+  // Note that this eventually will not (reliably) work once Solidity is updated so that 
+  // revert() behaves differently from throw and returns unused gas to caller.
+  it("should refuse to add a duplicate splitter (same 'from' address)", function () {
+    return contract.insertSplitter(
+      u.carol.addr, 
+      u.alice.name, 
+      u.bob.addr, 
+      u.bob.name, 
+      u.carol.addr, 
+      u.carol.name,
+      {from: u.alice.addr, value: testValueEven})
+    .then(function(txn) {
       return contract.insertSplitter(
-        u.carol.addr, 
+        u.alice.addr, 
         u.alice.name, 
         u.bob.addr, 
         u.bob.name, 
         u.carol.addr, 
         u.carol.name,
-        {from: u.alice.addr, value: testValueEven})
-      .then(function(txn) {
-        return contract.insertSplitter(
-          u.alice.addr, 
-          u.alice.name, 
-          u.bob.addr, 
-          u.bob.name, 
-          u.carol.addr, 
-          u.carol.name,
-          {from: u.alice.addr, value: testValueEven})
-      });
-    }).then(function(err) {
-        assert.isDefined(err, "transaction should have thrown");
+        {from: u.alice.addr, value: testValueEven});
+    })
+    .then(function(txn) {
+      var tx = web3.eth.getTransaction(txn.tx);
+      var txr = txn.receipt;
+      assert.strictEqual(txr.gasUsed, tx.gas, "Not all gas was used up, transaction did not throw.");
     });
   });
 });
