@@ -1,63 +1,61 @@
 var Splitter = artifacts.require("./Splitter.sol");
 
 contract('Splitter', function(accounts) {
-  it("should put 10000 MetaCoin in the first account", function() {
-    return MetaCoin.deployed().then(function(instance) {
-      return instance.getBalance.call(accounts[0]);
-    }).then(function(balance) {
-      assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
+  var contract;
+
+  var u = {
+    alice: {name: "Alice", addr: accounts[0]},
+    bob: {name: "Bob", addr: accounts[1]},
+    carol: {name: "Carol", addr: accounts[2]},
+    david: {name: "David", addr: accounts[3]},
+    emma: {name: "Emma", addr: accounts[4]}
+  };
+
+  // in wei
+  var testValueEven = 6;
+  var testValueOdd = 7;
+
+  beforeEach(function() {
+    return Splitter.new({from: owner})
+    .then(function(instance) {
+      contract = instance;
     });
   });
-  it("should call a function that depends on a linked library", function() {
-    var meta;
-    var metaCoinBalance;
-    var metaCoinEthBalance;
 
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(accounts[0]);
-    }).then(function(outCoinBalance) {
-      metaCoinBalance = outCoinBalance.toNumber();
-      return meta.getBalanceInEth.call(accounts[0]);
-    }).then(function(outCoinBalanceEth) {
-      metaCoinEthBalance = outCoinBalanceEth.toNumber();
-    }).then(function() {
-      assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpected function, linkage may be broken");
-    });
-  });
-  it("should send coin correctly", function() {
-    var meta;
+  it("should add a valid splitter with Alice, Bob and Carol", function () {
+    return contract.insertSplitter(
+      u.alice.addr, 
+      u.alice.name, 
+      u.bob.addr, 
+      u.bob.name, 
+      u.carol.addr, 
+      u.carol.name,
+      {from: u.alice.addr, value: testValueEven})
+    .then(function(txn) {
+      return contract.getSplitterAtIndex(0);
+    })
+    .then(function(
+      _fromUserAddr,
+      _fromUserName,
+      _toUser1Addr,
+      _toUser1Name,
+      _toUser1Balance,
+      _toUser2Addr,
+      _toUser2Name,
+      _toUser2Balance
+    ) {
+      // compute expected balances, handling case where test value is an odd number
+      var user2ExpectedBalance = testValueEven / 2;
+      var user1ExpectedBalance = testValueEven - user2ExpectedBalance;
 
-    // Get initial balances of first and second account.
-    var account_one = accounts[0];
-    var account_two = accounts[1];
-
-    var account_one_starting_balance;
-    var account_two_starting_balance;
-    var account_one_ending_balance;
-    var account_two_ending_balance;
-
-    var amount = 10;
-
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_starting_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_starting_balance = balance.toNumber();
-      return meta.sendCoin(account_two, amount, {from: account_one});
-    }).then(function() {
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_ending_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_ending_balance = balance.toNumber();
-
-      assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-      assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
+      assert.equal(_fromUserAddr.toString(10), u.alice.addr.toString(10), "Incorrect from user address");
+      assert.equal(_fromUserName, u.alice.name, "Incorrect from user name");
+      assert.equal(_toUser1Addr.toString(10), u.bob.addr.toString(10), "Incorrect to user 1 address");
+      assert.equal(_toUser1Name, u.bob.name, "Incorrect to user 1 name");
+      assert.equal(_toUser1Balance.toString(10), user1ExpectedBalance, "Incorrect to user 1 balance");
+      assert.equal(_toUser2Addr.toString(10), u.carol.addr.toString(10), "Incorrect to user 2 address");
+      assert.equal(_toUser2Name, u.carol.name, "Incorrect to user 2 name");
+      assert.equal(_toUser2Balance.toString(10), user2ExpectedBalance, "Incorrect to user 2 balance");
     });
   });
 });
