@@ -60,4 +60,33 @@ contract('Splitter', function(accounts) {
       assert.equal(_toUser2Balance.toString(10), user2ExpectedBalance, "Incorrect to user 2 balance");
     });
   });
+
+  // see: https://ethereum.stackexchange.com/a/17707/10772
+  it("should refuse to add a duplicate splitter (same from address)", function () {
+    return contract.insertSplitter(
+      u.alice.addr, 
+      u.alice.name, 
+      u.bob.addr, 
+      u.bob.name, 
+      u.carol.addr, 
+      u.carol.name,
+      {from: u.alice.addr, value: testValueEven})
+    .then(function(txn) {
+      return contract.insertSplitter(
+        u.alice.addr, 
+        u.alice.name, 
+        u.bob.addr, 
+        u.bob.name, 
+        u.carol.addr, 
+        u.carol.name,
+        {from: u.alice.addr, value: testValueEven})
+    })
+    .then(assert.fail)
+    .catch(function(error) {
+            assert(
+                error.message.indexOf('out ofo gas') >= 0,
+                'Should have refused to insert a duplicate splitter: ' + error.message
+            )
+    });
+  });
 });
