@@ -76,6 +76,7 @@ contract Splitter {
 		require(!isEmptyString(fromUserName));
 		require(!isEmptyString(toUser1Name));
 		require(!isEmptyString(toUser2Name));
+		require(!isSplitter(fromUserAddr));		// disallow updates (duplicate from address)
 
 		// divide value between the two users, favouring the first user in the case of an odd amount of wei
 		uint valueSplit2 = msg.value / 2;
@@ -100,6 +101,23 @@ contract Splitter {
 		enabled = false;
 	}
 
+	// check if this splitter exists
+	function isSplitter(address fromUserAddr)
+		public
+		constant
+		returns (bool exists)
+	{
+		if (splitterIndex.length == 0) {
+			return false;
+		}
+
+		if (splitterIndex[splitterStructs[fromUserAddr].index] == fromUserAddr) {
+			return true;
+		}
+
+		return false;
+	}
+
 	function getSplitterCount()
 		public
 		constant
@@ -122,7 +140,7 @@ contract Splitter {
 			uint toUser2Balance)
 	{
 		// ensure this splitter entry exists
-		require(index > 0 && index < splitterIndex.length);
+		require(index < splitterIndex.length);
 
 		SplitterStruct memory s = splitterStructs[splitterIndex[index]];
 
