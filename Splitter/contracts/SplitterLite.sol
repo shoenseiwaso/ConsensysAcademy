@@ -13,7 +13,7 @@ pragma solidity ^0.4.4;
 // Basic data mapping: mapping(address => uint) balances;
 
 contract SplitterLite {
-	mapping (address => uint) private balances;
+	mapping (address => uint) public balances;
 
 	// global state variables will be set on contract creation
 	address public owner = msg.sender;
