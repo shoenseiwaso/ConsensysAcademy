@@ -52,7 +52,7 @@ contract Remittance {
 	// Use the preferred withdrawal pattern rather than the send pattern.
 	// see: http://solidity.readthedocs.io/en/develop/common-patterns.html#withdrawal-from-contracts
 	//
-	// Callable by the recipient once the deadline, or by the remitter once the deadline has passed.
+	// Callable by the recipient, or by the remitter once the deadline has passed.
 	function withdraw(bytes32 _pw) public returns (bool success) {
 		require(this.balance > 0);
 		require(msg.sender == recipient || (msg.sender == remitter && now > deadline));
@@ -63,7 +63,7 @@ contract Remittance {
         msg.sender.transfer(amount); // send the recipient (or refund the remitter) the balance less the owner's fee
 		owner.transfer(this.balance); // pay the owner their fee
 		Withdraw(msg.sender, amount, OWNER_FEE);
-		
+
 		return true;
     }
 
