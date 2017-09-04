@@ -23,11 +23,7 @@ contract('SplitterLite', function(accounts) {
   });
 
   it("Alice splits an even amount of wei between Bob and Carol", function () {
-    //var fromBalBefore = web3.eth.getBalance(u.alice);
-    var to1BalBefore = web3.eth.getBalance(u.bob);
-    var to2BalBefore = web3.eth.getBalance(u.carol);
-
-    // compute expected balances
+    // compute expected values
     var value = testValueEven;
     var valueTo1 = Math.floor(value / 2);
     var valueTo2 = value - valueTo1;
@@ -55,14 +51,12 @@ contract('SplitterLite', function(accounts) {
       return contract.balances(u.bob);
     })
     .then(function(to1BalAfter) {
-      assert.equal(to1BalAfter.toString(10), to1BalBefore.plus(valueTo1).toString(10), "Bob's expected balance doesn't match");
+      assert.equal(to1BalAfter.toString(10), valueTo1, "Bob's expected balance doesn't match");
 
       return contract.balances(u.carol);
     })
     .then(function(to2BalAfter) {
-      assert.strictEqual(to2BalAfter.toString(10), to2BalBefore.plus(valueTo2).toString(10), "Carol's expected balance doesn't match");
-
-      assert.strictEqual(1, 2, "Something is broken");
+      assert.equal(to2BalAfter.toString(10), valueTo2, "Carol's expected balance doesn't match");
     });
   });
 });
