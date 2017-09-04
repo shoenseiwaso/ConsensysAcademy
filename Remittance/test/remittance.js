@@ -64,4 +64,32 @@ contract('Remittance', function(accounts) {
       assert.equal(bal, 0, "Remittance contract still has a balance left on it.")
     });
   });
+
+  it("David tries to send funds to Emma, but it times out and David claims the funds back", function () {
+    return contract.remit(
+      u.emma,
+      pwHash,
+      shortTimeout,
+      {from: u.david, value: testValue})
+    .then(function(txn) {
+      // check that an exception wasn't thrown
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, remit() threw an exception.");
+
+      return web3.eth.getBalance(contract.address);
+    })
+    .then(function(bal) {
+      assert.equal(bal, testValue, "Remittance contract does not have the expected balance.")
+
+      return contract.withdraw(pw, {from: u.david});
+    })
+    .then(function(txn) {
+      // check that an exception wasn't thrown
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, withdraw() threw an exception.");
+
+      return web3.eth.getBalance(contract.address);
+    })
+    .then(function(bal) {
+      assert.equal(bal, 0, "Remittance contract still has a balance left on it.")
+    });
+  });
 });
