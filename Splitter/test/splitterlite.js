@@ -82,13 +82,23 @@ contract('SplitterLite', function(accounts) {
 
       return contract.balances(u.david);
     })
-    .then(function(to1BalAfter) {
-      assert.equal(to1BalAfter.toString(10), valueTo1, "David's expected balance doesn't match");
+    .then(function(bal) {
+      assert.equal(bal.toString(10), valueTo1, "David's expected balance doesn't match");
 
       return contract.balances(u.emma);
     })
-    .then(function(to2BalAfter) {
-      assert.equal(to2BalAfter.toString(10), valueTo2, "Emma's expected balance doesn't match");
+    .then(function(bal) {
+      assert.equal(bal.toString(10), valueTo2, "Emma's expected balance doesn't match");
+
+      return contract.withdraw({from: u.david});
+    })
+    .then(function(txn) {
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, withdraw() threw an exception.");
+
+      return contract.balances(u.david);
+    })
+    .then(function(bal) {
+      assert.equal(bal.toString(10), 0, "David's expected contract balance doesn't match");
 
       return contract.kill({from: u.alice});
     })
