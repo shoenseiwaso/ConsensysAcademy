@@ -3,7 +3,9 @@ Project work for Consensys Academy 2017
 
 See the per-project directories for more info:
 
+**Module 4**
 * [Splitter](https://github.com/shoenseiwaso/ConsensysAcademy/tree/master/Splitter)
+* [Remittance](https://github.com/shoenseiwaso/ConsensysAcademy/tree/master/Remittance)
 
 ## Usage
 
