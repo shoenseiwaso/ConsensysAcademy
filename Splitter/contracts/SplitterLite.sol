@@ -13,6 +13,8 @@ pragma solidity ^0.4.4;
 // Basic data mapping: mapping(address => uint) balances;
 //
 // Can you do it the fewest line of code possible?
+//
+// Make it a public utility by allowing anyone to send to it
 
 contract SplitterLite {
 	mapping (address => uint) public balances;
@@ -20,15 +22,8 @@ contract SplitterLite {
 	// global state variables will be set on contract creation
 	address public owner = msg.sender;
 
-	// only the owner can send value to or kill the contract
-	modifier onlyByOwner()
-	{
-		require(msg.sender == owner);
-		_;
-	}
-
 	// accept funds from owner 
-	function split(address to1, address to2) payable onlyByOwner() {
+	function split(address to1, address to2) public payable {
 		uint amount1 = msg.value / 2;
 		balances[to1] += amount1;
 		balances[to2] += msg.value - amount1;
@@ -42,8 +37,12 @@ contract SplitterLite {
         msg.sender.transfer(amount);
     }
 
-	// kill the contract and return remaining balance to the owner
-	function kill() public onlyByOwner() { 
+	// Kill the contract and return remaining balance to the owner.
+	// Clearly this will disenfranchise anyone with an outstanding balance,
+	// so either the owner needs to be a trusted party or this function should be 
+	// expanded with safeguards.
+	function kill() public { 
+		require(msg.sender == owner);
 		selfdestruct(owner);
 	}
 }
