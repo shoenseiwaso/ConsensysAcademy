@@ -66,7 +66,7 @@ contract('SplitterLite', function(accounts) {
     });
   });
 
-  it("Alice splits an odd amount of wei between David and Emma", function () {
+  it("Alice splits an odd amount of wei between David and Emma, David withdraws, then contract is killed", function () {
     // compute expected values
     var value = testValueOdd;
     var valueTo1 = Math.floor(value / 2);
@@ -101,9 +101,13 @@ contract('SplitterLite', function(accounts) {
         {from: u.alice, value: value});
     })
     .then(function(txn) {
-      // this should have thrown an exception, i.e. used all gas up, since contract self destructed
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, split() threw an exception.");
 
-      assert(allGasUsedUp(txn), "All gas was not used up, contract is somehow still active.");
+      return contract.owner();
+    })
+    .then(function(_owner) {
+      // see: https://ethereum.stackexchange.com/questions/8482/how-can-i-check-if-a-contract-has-self-destructed-in-solidity
+      assert.equal(_owner.toString(), "0x", "Owner was not zeroed out after kill(), contract still active.");
     });
   });
 });
