@@ -19,6 +19,8 @@ contract Remittance {
 
 	// This should be set to a value smaller than the gas estimate required to deploy the contract,
 	// in order for it to make economic sense for the remitter to use this contract vs. deploy their own.
+	// Making this a constant makes the contract deployment and operation slightly less expensive, 
+	// at the cost of it being fixed for the duration of the contract.
 	uint constant OWNER_FEE = 1000 wei;
 
 	event Remit(address indexed _remitter, address indexed _recipient, bytes32 _pwHash, uint _deadline, uint _value);
