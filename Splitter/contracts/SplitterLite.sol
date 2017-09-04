@@ -11,6 +11,8 @@ pragma solidity ^0.4.4;
 // 4. Include a way to withdraw funds
 //
 // Basic data mapping: mapping(address => uint) balances;
+//
+// Can you do it the fewest line of code possible?
 
 contract SplitterLite {
 	mapping (address => uint) public balances;
