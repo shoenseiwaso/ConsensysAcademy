@@ -22,7 +22,11 @@ contract('Remittance', function(accounts) {
   // in wei
   var testValue = web3.toWei(1, "ether");
   var pw = "random phrase";
-  var pwHash = "0xdadde2699200ad2b8a51ccaa19bcb954043c85bbf6d60020951db5166064aff6" //web3.sha3(pw);
+  
+  var pwHash = "0xdadde2699200ad2b8a51ccaa19bcb954043c85bbf6d60020951db5166064aff6"
+  // web3.sha3(pw); didn't work, so just used a dummy contract in Remix to get this value
+  // see: https://ethereum.stackexchange.com/questions/12667/how-to-sha3-strings-and-integers-with-javascript
+  
   var longTimeout = 24 * 60 * 60;
   var shortTimeout = 0;
 
