@@ -30,6 +30,7 @@ contract SplitterLite {
 		uint amount1 = msg.value / 2;
 		balances[to1] += amount1;
 		balances[to2] += msg.value - amount1;
+		Split(msg.sender, to1, to2, msg.value);
 		return true;
 	}
 
@@ -39,6 +40,7 @@ contract SplitterLite {
         uint amount = balances[msg.sender];
         balances[msg.sender] = 0;
         msg.sender.transfer(amount);
+		Withdraw(msg.sender, amount);
 		return true;
     }
 
