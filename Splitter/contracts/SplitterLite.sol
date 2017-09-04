@@ -25,7 +25,7 @@ contract SplitterLite {
 	event Split(address indexed _from, address indexed _to1, address indexed _to2, uint _amount);
 	event Withdraw(address indexed _to, uint _amount);
 
-	// accept funds from owner 
+	// accept funds from anyone 
 	function split(address to1, address to2) public payable returns (bool success) {
 		uint amount1 = msg.value / 2;
 		balances[to1] += amount1;
