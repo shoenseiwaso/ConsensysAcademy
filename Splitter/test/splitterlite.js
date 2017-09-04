@@ -23,7 +23,7 @@ contract('SplitterLite', function(accounts) {
   });
 
   it("Alice splits an even amount of wei between Bob and Carol", function () {
-    var fromBalBefore = web3.eth.getBalance(u.alice);
+    //var fromBalBefore = web3.eth.getBalance(u.alice);
     var to1BalBefore = web3.eth.getBalance(u.bob);
     var to2BalBefore = web3.eth.getBalance(u.carol);
 
