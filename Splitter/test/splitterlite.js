@@ -1,5 +1,13 @@
 var SplitterLite = artifacts.require("./SplitterLite.sol");
 
+function allGasUsedUp(txn) {
+  // check that given transaction didn't throw an exception by running out of gas
+  var tx = web3.eth.getTransaction(txn.tx);
+  var txr = txn.receipt;
+
+  return txr.gasUsed === tx.gas;
+}
+
 contract('SplitterLite', function(accounts) {
   var contract;
 
@@ -34,9 +42,7 @@ contract('SplitterLite', function(accounts) {
       {from: u.alice, value: value})
     .then(function(txn) {
       // check that split() didn't throw by running out of gas
-      var tx = web3.eth.getTransaction(txn.tx);
-      var txr = txn.receipt;
-      assert.notStrictEqual(txr.gasUsed, tx.gas, "All gas was used up, split() threw an exception.");
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, split() threw an exception.");
 
       // Check Alice's balance.
       // Note that this simple check works because her account is the etherbase,
@@ -57,6 +63,47 @@ contract('SplitterLite', function(accounts) {
     })
     .then(function(to2BalAfter) {
       assert.equal(to2BalAfter.toString(10), valueTo2, "Carol's expected balance doesn't match");
+    });
+  });
+
+  it("Alice splits an odd amount of wei between David and Emma", function () {
+    // compute expected values
+    var value = testValueOdd;
+    var valueTo1 = Math.floor(value / 2);
+    var valueTo2 = value - valueTo1;
+
+    return contract.split(
+      u.david,
+      u.emma,
+      {from: u.alice, value: value})
+    .then(function(txn) {
+      // check that split() didn't throw by running out of gas
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, split() threw an exception.");
+
+      return contract.balances(u.david);
+    })
+    .then(function(to1BalAfter) {
+      assert.equal(to1BalAfter.toString(10), valueTo1, "David's expected balance doesn't match");
+
+      return contract.balances(u.emma);
+    })
+    .then(function(to2BalAfter) {
+      assert.equal(to2BalAfter.toString(10), valueTo2, "Emma's expected balance doesn't match");
+
+      return contract.kill({from: u.alice});
+    })
+    .then(function(txn) {
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, kill() threw an exception.");
+
+      return contract.split(
+        u.david,
+        u.emma,
+        {from: u.alice, value: value});
+    })
+    .then(function(txn) {
+      // this should have thrown an exception, i.e. used all gas up, since contract self destructed
+
+      assert(allGasUsedUp(txn), "All gas was not used up, contract is somehow still active.");
     });
   });
 });
