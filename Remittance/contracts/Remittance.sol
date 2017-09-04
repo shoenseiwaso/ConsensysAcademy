@@ -1,32 +1,72 @@
 pragma solidity ^0.4.4;
 
-// This is just a simple example of a coin-like contract.
-// It is not standards compatible and cannot be expected to talk to other
-// coin/token contracts. If you want to create a standards-compliant
-// token, see: https://github.com/ConsenSys/Tokens. Cheers!
+// Consensys Academy 2017
+// Jeff Wentworth (github: shoenseiwaso)
+// Module 4: Remittance
+//
+// This is setup as a contract which can be re-used by the owner multiple times to facilitate three
+// way transactions, where the owner takes a cut each time.
 
-contract MetaCoin {
-	mapping (address => uint) balances;
+contract Remittance {
+	// state variables
+	address public remitter;
+	address public recipient;
+	address public owner;
+	bytes32 public pwHash;
+	uint public deadline;
 
-	event Transfer(address indexed _from, address indexed _to, uint256 _value);
+	uint constant MAX_DEADLINE = 7 days;
 
-	function MetaCoin() {
-		balances[tx.origin] = 10000;
+	// This should be set to a value smaller than the gas estimate required to deploy the contract,
+	// in order for it to make economic sense for the remitter to use this contract vs. deploy their own.
+	uint constant OWNER_CUT = 1000 wei;
+
+	event Remit(address indexed _remitter, address indexed _recipient, bytes32 _pwHash, uint _deadline, uint _value);
+	event Withdraw(address indexed _withdrawer, uint _value);
+
+	function Remittance() {
+		owner = msg.sender;
 	}
 
-	function sendCoin(address receiver, uint amount) returns(bool sufficient) {
-		if (balances[msg.sender] < amount) return false;
-		balances[msg.sender] -= amount;
-		balances[receiver] += amount;
-		Transfer(msg.sender, receiver, amount);
-		return true;
+	// Go straight to stretch goal and make one password the recipient's address.
+	// Security hole is that cleartext passwords can be read by anyone on the blockchain, and a 
+	// race condition could even exist where a pending transaction that is propagated before included in a mined
+	// block is intercepted by a bad actor and they in turn create an equivalent transaction with higher gas
+	// to steal the funds.
+	//
+	// A better but more expensive gas-wise option for this would be to have the remitter positively 
+	// sign the transaction.
+	function remit(address _recipient, bytes32 _pwHash, uint _timeout) {
+		require(_timeout <= MAX_DEADLINE);
+		require(this.balance == 0);
+
+		remitter = msg.sender;
+		recipient = _recipient;
+		pwHash = _pwHash;
+		deadline = now + _timeout;
+
+		Remit(msg.sender, _recipient, _pwHash, deadline, msg.value);
 	}
 
-	function getBalanceInEth(address addr) returns(uint){
-		return ConvertLib.convert(getBalance(addr),2);
-	}
+	// Use the preferred withdrawal pattern rather than the send pattern.
+	// see: http://solidity.readthedocs.io/en/develop/common-patterns.html#withdrawal-from-contracts
+	//
+	// Callable by the recipient once the deadline, or by the remitter once the deadline has passed.
+	function withdraw(bytes32 _pw) {
+		require(this.balance > 0);
+		require(msg.sender == recipient || (msg.sender == remitter && now > deadline));
+		require(pwHash == keccak256(_pw));
 
-	function getBalance(address addr) returns(uint) {
-		return balances[addr];
+		uint amount = this.balance - OWNER_CUT;
+
+        msg.sender.transfer(amount);
+		owner.transfer(this.balance); // pay the owner their fee
+		Withdraw(msg.sender, amount);
+    }
+
+	// Kill the contract and return remaining balance back to the remitter.
+	function kill() public { 
+		require(msg.sender == owner);
+		selfdestruct(remitter);
 	}
 }
