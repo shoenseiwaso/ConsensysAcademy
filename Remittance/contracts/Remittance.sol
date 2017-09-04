@@ -22,7 +22,7 @@ contract Remittance {
 	uint constant OWNER_FEE = 1000 wei;
 
 	event Remit(address indexed _remitter, address indexed _recipient, bytes32 _pwHash, uint _deadline, uint _value);
-	event Withdraw(address indexed _withdrawer, uint _value);
+	event Withdraw(address indexed _withdrawer, uint _value, uint _fee);
 
 	// Go straight to stretch goal and make one password the recipient's address.
 	// Security hole is that cleartext passwords can be read by anyone on the blockchain, and a 
@@ -58,7 +58,7 @@ contract Remittance {
 
         msg.sender.transfer(amount); // send the recipient (or refund the remitter) the balance less the owner's fee
 		owner.transfer(this.balance); // pay the owner their fee
-		Withdraw(msg.sender, amount);
+		Withdraw(msg.sender, amount, OWNER_FEE);
     }
 
 	// Kill the contract and return remaining balance back to the remitter.
