@@ -9,9 +9,9 @@ pragma solidity ^0.4.4;
 
 contract Remittance {
 	// state variables
+	address public owner = msg.sender;
 	address public remitter;
 	address public recipient;
-	address public owner;
 	bytes32 public pwHash;
 	uint public deadline;
 
@@ -24,10 +24,6 @@ contract Remittance {
 	event Remit(address indexed _remitter, address indexed _recipient, bytes32 _pwHash, uint _deadline, uint _value);
 	event Withdraw(address indexed _withdrawer, uint _value);
 
-	function Remittance() {
-		owner = msg.sender;
-	}
-
 	// Go straight to stretch goal and make one password the recipient's address.
 	// Security hole is that cleartext passwords can be read by anyone on the blockchain, and a 
 	// race condition could even exist where a pending transaction that is propagated before included in a mined
@@ -36,7 +32,7 @@ contract Remittance {
 	//
 	// A better but more expensive gas-wise option for this would be to have the remitter positively 
 	// sign the transaction.
-	function remit(address _recipient, bytes32 _pwHash, uint _timeout) {
+	function remit(address _recipient, bytes32 _pwHash, uint _timeout) public payable {
 		require(_timeout <= MAX_DEADLINE);
 		require(this.balance == 0);
 
@@ -52,7 +48,7 @@ contract Remittance {
 	// see: http://solidity.readthedocs.io/en/develop/common-patterns.html#withdrawal-from-contracts
 	//
 	// Callable by the recipient once the deadline, or by the remitter once the deadline has passed.
-	function withdraw(bytes32 _pw) {
+	function withdraw(bytes32 _pw) public {
 		require(this.balance > 0);
 		require(msg.sender == recipient || (msg.sender == remitter && now > deadline));
 		require(pwHash == keccak256(_pw));
