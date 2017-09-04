@@ -1,63 +1,53 @@
 var Remittance = artifacts.require("./Remittance.sol");
 
+function allGasUsedUp(txn) {
+  // check that given transaction didn't throw an exception by running out of gas
+  var tx = web3.eth.getTransaction(txn.tx);
+  var txr = txn.receipt;
+
+  return txr.gasUsed === tx.gas;
+}
+
 contract('Remittance', function(accounts) {
-  it("should put 10000 MetaCoin in the first account", function() {
-    return MetaCoin.deployed().then(function(instance) {
-      return instance.getBalance.call(accounts[0]);
-    }).then(function(balance) {
-      assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
+  var contract;
+  
+  var u = {
+    alice: accounts[0],
+    bob: accounts[1],
+    carol: accounts[2],
+    david: accounts[3],
+    emma: accounts[4]
+  };
+
+  // in wei
+  var testValue = web3.toWei(1, "ether");
+  var pw = "random phrase";
+  var pwHash = web3.sha3(pw);
+  var longTimeout = 24 * 60 * 60;
+  var shortTimeout = 0;
+
+  beforeEach(function() {
+    return Remittance.new({from: u.alice})
+    .then(function(instance) {
+      contract = instance;
     });
   });
-  it("should call a function that depends on a linked library", function() {
-    var meta;
-    var metaCoinBalance;
-    var metaCoinEthBalance;
 
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(accounts[0]);
-    }).then(function(outCoinBalance) {
-      metaCoinBalance = outCoinBalance.toNumber();
-      return meta.getBalanceInEth.call(accounts[0]);
-    }).then(function(outCoinBalanceEth) {
-      metaCoinEthBalance = outCoinBalanceEth.toNumber();
-    }).then(function() {
-      assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpected function, linkage may be broken");
-    });
-  });
-  it("should send coin correctly", function() {
-    var meta;
+  it("Alice sends funds to Bob via Carol's Exchange shop", function () {
+    return contract.remit(
+      u.carol,
+      pwHash,
+      longTimeout,
+      {from: u.alice, value: testValue})
+    .then(function(txn) {
+      // check that an exception wasn't thrown
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, remit() threw an exception.");
 
-    // Get initial balances of first and second account.
-    var account_one = accounts[0];
-    var account_two = accounts[1];
-
-    var account_one_starting_balance;
-    var account_two_starting_balance;
-    var account_one_ending_balance;
-    var account_two_ending_balance;
-
-    var amount = 10;
-
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_starting_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_starting_balance = balance.toNumber();
-      return meta.sendCoin(account_two, amount, {from: account_one});
-    }).then(function() {
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_ending_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_ending_balance = balance.toNumber();
-
-      assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-      assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
+      return contract.withdraw(pw, {from: u.carol});
+    })
+    .then(function(txn) {
+      // check that an exception wasn't thrown
+      assert.isNotTrue(allGasUsedUp(txn), "All gas was used up, withdraw() threw an exception.");
     });
   });
 });
