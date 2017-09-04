@@ -20,7 +20,13 @@ In a different terminal, try testing the Remittance contract.
 ```sh
 $ cd jeff/Remittance
 $ truffle test
-...
+Compiling ./contracts/Remittance.sol...
+
+  Contract: Remittance
+    ✓ Alice sends funds to Bob via Carol's Exchange shop (5097ms)
+    ✓ David tries to send funds to Emma, but it times out and David claims the funds back (3035ms)
+
+  2 passing (10s)
 $
 ```
 
@@ -41,9 +47,9 @@ Of course, for safety, no one should send their passwords to the blockchain in t
 
 ## Stretch goals: Remittance
 
-- [ ] add a deadline, after which Alice can claim back the unchallenged Ether
-- [ ] add a limit to how far in the future the deadline can be
-- [ ] add a kill switch to the whole contract
-- [ ] plug a security hole (which one?) by changing one password to the recipient's address
-- [ ] make the contract a utility that can be used by David, Emma and anybody with an address
-- [ ] make you, the owner of the contract, take a cut of the Ethers smaller than what it would cost Alice to deploy the same contract herself
+- [x] add a deadline, after which Alice can claim back the unchallenged Ether
+- [x] add a limit to how far in the future the deadline can be
+- [x] add a kill switch to the whole contract
+- [x] plug a security hole (which one?) by changing one password to the recipient's address
+- [x] make the contract a utility that can be used by David, Emma and anybody with an address
+- [x] make you, the owner of the contract, take a cut of the Ethers smaller than what it would cost Alice to deploy the same contract herself
