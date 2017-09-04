@@ -34,8 +34,8 @@ contract Remittance {
 	// sign the transaction.
 	function remit(address _recipient, bytes32 _pwHash, uint _timeout) public payable {
 		require(_timeout <= MAX_DEADLINE);
-		require(this.balance == 0); // ensure contract is not currently in use
 		require(msg.value > OWNER_FEE); // must be able to at least pay the owner fee
+		require(this.balance - msg.value == 0); // ensure contract is not currently in use (balance before this call was 0)
 
 		remitter = msg.sender;
 		recipient = _recipient;
