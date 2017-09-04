@@ -19,7 +19,7 @@ contract Remittance {
 
 	// This should be set to a value smaller than the gas estimate required to deploy the contract,
 	// in order for it to make economic sense for the remitter to use this contract vs. deploy their own.
-	uint constant OWNER_CUT = 1000 wei;
+	uint constant OWNER_FEE = 1000 wei;
 
 	event Remit(address indexed _remitter, address indexed _recipient, bytes32 _pwHash, uint _deadline, uint _value);
 	event Withdraw(address indexed _withdrawer, uint _value);
@@ -35,6 +35,7 @@ contract Remittance {
 	function remit(address _recipient, bytes32 _pwHash, uint _timeout) public payable {
 		require(_timeout <= MAX_DEADLINE);
 		require(this.balance == 0); // ensure contract is not currently in use
+		require(msg.value > OWNER_FEE); // must be able to at least pay the owner fee
 
 		remitter = msg.sender;
 		recipient = _recipient;
@@ -53,7 +54,7 @@ contract Remittance {
 		require(msg.sender == recipient || (msg.sender == remitter && now > deadline));
 		require(pwHash == keccak256(_pw));
 
-		uint amount = this.balance - OWNER_CUT;
+		uint amount = this.balance - OWNER_FEE;
 
         msg.sender.transfer(amount); // send the recipient (or refund the remitter) the balance less the owner's fee
 		owner.transfer(this.balance); // pay the owner their fee
