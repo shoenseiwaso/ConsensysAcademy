@@ -29,7 +29,7 @@ In a different terminal, compile and deploy the smart contract, and build the fr
 $ ./node_modules/.bin/truffle build
 ```
 
-Then open a browser to [http://localhost:8000].
+Then open a browser to http://localhost:8000.
 
 ## Future deployments
 
