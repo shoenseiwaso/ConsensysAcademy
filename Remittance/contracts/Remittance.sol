@@ -10,6 +10,7 @@ pragma solidity ^0.4.4;
 contract Remittance {
 	// state variables
 	address public owner = msg.sender;
+	uint public trackedBalance = 0;
 	address public remitter;
 	address public recipient;
 	bytes32 public pwHash;
@@ -37,8 +38,9 @@ contract Remittance {
 	function remit(address _recipient, bytes32 _pwHash, uint _timeout) public payable returns (bool success) {
 		require(_timeout <= MAX_DEADLINE);
 		require(msg.value > OWNER_FEE); // must be able to at least pay the owner fee
-		require(this.balance - msg.value == 0); // ensure contract is not currently in use (balance before this call was 0)
+		require(trackedBalance == 0); // ensure contract is not currently in use (balance before this call was 0)
 
+		trackedBalance = msg.value;
 		remitter = msg.sender;
 		recipient = _recipient;
 		pwHash = _pwHash;
@@ -54,14 +56,15 @@ contract Remittance {
 	//
 	// Callable by the recipient, or by the remitter once the deadline has passed.
 	function withdraw(bytes32 _pw) public returns (bool success) {
-		require(this.balance > 0);
+		require(trackedBalance > 0); // ensure remit() has been called
 		require(msg.sender == recipient || (msg.sender == remitter && now > deadline));
 		require(pwHash == keccak256(_pw));
 
-		uint amount = this.balance - OWNER_FEE;
+		uint amount = trackedBalance - OWNER_FEE;
 
         msg.sender.transfer(amount); // send the recipient (or refund the remitter) the balance less the owner's fee
 		owner.transfer(this.balance); // pay the owner their fee
+		trackedBalance = 0; // effectively reset the contract so it can be used again
 		Withdraw(msg.sender, amount, OWNER_FEE);
 
 		return true;
