@@ -60,11 +60,11 @@ contract Remittance {
 		require(msg.sender == recipient || (msg.sender == remitter && now > deadline));
 		require(pwHash == keccak256(_pw));
 
-		trackedBalance = 0; // effectively reset the contract so it can be used again
 		uint amount = trackedBalance - OWNER_FEE;
 
         msg.sender.transfer(amount); // send the recipient (or refund the remitter) the balance less the owner's fee
 		owner.transfer(this.balance); // pay the owner their fee
+		trackedBalance = 0; // effectively reset the contract so it can be used again
 		Withdraw(msg.sender, amount, OWNER_FEE);
 
 		return true;
