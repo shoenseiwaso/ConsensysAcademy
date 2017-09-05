@@ -11,7 +11,7 @@ git clone --recursive git@github.com:shoenseiwaso/ConsensysAcademy.git ./jeff
 Launch the private test network in one terminal.
 
 ```sh
-$ cd jeff/Splitter
+$ cd jeff/Remittance
 $ ./launch-testnet.sh
 ```
 
