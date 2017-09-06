@@ -12,7 +12,7 @@ contract Remittance {
 	address public owner = msg.sender;
 	uint public trackedBalance = 0;
 	address public remitter;
-	address public recipient;
+	address public recipient = address(0);
 	bytes32 public pwHash;
 	uint public deadline;
 
@@ -36,6 +36,7 @@ contract Remittance {
 	// A better but more expensive gas-wise option for this would be to have the remitter positively 
 	// sign the transaction.
 	function remit(address _recipient, bytes32 _pwHash, uint _timeout) public payable returns (bool success) {
+		require(recipient == address(0));
 		require(_timeout <= MAX_DEADLINE);
 		require(msg.value > OWNER_FEE); // must be able to at least pay the owner fee
 		require(trackedBalance == 0); // ensure contract is not currently in use (balance before this call was 0)
@@ -68,6 +69,11 @@ contract Remittance {
 
         msg.sender.transfer(amount); // send the recipient (or refund the remitter) the balance less the owner's fee
 		owner.transfer(this.balance); // pay the owner their fee
+
+		// Reset the contract in a gas-efficient way.
+		// Do this to avoid a re-entrant attack vector where the recipient called remit() during msg.sender.transfer()
+		recipient = address(0);
+
 		Withdraw(msg.sender, amount, OWNER_FEE);
 
 		return true;
