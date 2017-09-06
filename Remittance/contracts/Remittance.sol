@@ -62,9 +62,12 @@ contract Remittance {
 
 		uint amount = trackedBalance - OWNER_FEE;
 
+		// Effectively reset the contract so it can be used again.
+		// Do this before transfer() to mitigate rentrant attack vector.
+		trackedBalance = 0;
+
         msg.sender.transfer(amount); // send the recipient (or refund the remitter) the balance less the owner's fee
 		owner.transfer(this.balance); // pay the owner their fee
-		trackedBalance = 0; // effectively reset the contract so it can be used again
 		Withdraw(msg.sender, amount, OWNER_FEE);
 
 		return true;
