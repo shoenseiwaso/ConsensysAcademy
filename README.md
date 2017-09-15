@@ -9,6 +9,7 @@ See the per-project directories for more info:
 
 **Module 5**
 * [Webpack Test](https://github.com/shoenseiwaso/ConsensysAcademy/tree/master/webpack_test)
+* [Shopfront](https://github.com/shoenseiwaso/ConsensysAcademy/tree/master/Shopfront)
 
 ## Usage
 
