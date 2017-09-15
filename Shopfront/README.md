@@ -25,6 +25,14 @@ Compiling ./contracts/Shopfront.sol...
 $
 ```
 
+## Architecture
+
+The Shopfront is divided up into a series of smart contracts as follows.
+
+* **Shopfront.sol**: the master contract. Spawns merchant contracts but also acts as a shopfront of its own. Collects a slice of income from each spawned merchant contract.
+* **SKULibrary.sol**: central library of products. Owner and merchants can add and remove products.
+* **ShopMerchant.sol**: merchant contract spawned by Shopfront master. Sends a slice of each sale back to master Shopfront contract.
+
 ## Base requirements: Shopfront
 
 The project will start as a database whereby:
