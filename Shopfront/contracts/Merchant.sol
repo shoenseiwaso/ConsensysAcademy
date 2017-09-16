@@ -164,7 +164,8 @@ contract Merchant {
 		returns(
 			uint256 price,
 			string desc,
-			uint256 refCount)
+			uint256 refCount,
+			bytes32 ph)
 	{
 		// ensure this catalog entry exists
 		require(id < catalog.length);
