@@ -48,6 +48,10 @@ contract Shopfront {
 		_;
 	}
 
+	function isMerchant(address merchAddress) public returns (bool exists) {
+		return true;
+	}
+
 	// based on: https://ethereum.stackexchange.com/questions/11039/how-can-you-check-if-a-string-is-empty-in-solidity
 	function isEmptyString(string s) private constant returns(bool success) {
 		bytes memory b = bytes(s);
