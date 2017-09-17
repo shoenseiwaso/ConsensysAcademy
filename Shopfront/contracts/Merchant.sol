@@ -99,17 +99,19 @@ contract Merchant {
 
 		catalog[id].refCount--;
 
-		RemovedProduct(id, catalog[id].price, catalog[id].desc, catalog[id].refCount, catalog[id].ph);
+		Product memory p = catalog[id];
+
+		RemovedProduct(id, p.price, p.desc, p.refCount, p.ph);
 	}
 
-	function kill() onlyByOwner() {
+	function kill() public onlyByOwner() {
 		selfdestruct(owner);
 	}
 
 	function productHash(uint256 price, string desc)
 		public
 		constant
-		returns (bytes32 ph)
+		returns(bytes32 ph)
 	{
 		return keccak256(price, desc);
 	}
@@ -118,7 +120,7 @@ contract Merchant {
 	function productExists(uint256 id)
 		public
 		constant
-		returns (bool exists)
+		returns(bool exists)
 	{
 		if (catalog.length == 0) {
 			return false;
@@ -135,7 +137,7 @@ contract Merchant {
 	function getProductId(bytes32 ph)
 		public
 		constant
-		returns (bool exists, uint256 id)
+		returns(bool exists, uint256 id)
 	{
 		if (catalog.length == 0) {
 			return (false, 0);
@@ -172,11 +174,6 @@ contract Merchant {
 
 		Product memory p = catalog[id];
 
-		return (
-			p.price,
-			p.desc,
-			p.refCount,
-			p.ph
-		);
+		return (p.price, p.desc, p.refCount, p.ph);
 	}
 }
