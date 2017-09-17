@@ -8,6 +8,7 @@ pragma solidity ^0.4.4;
 // https://medium.com/@robhitchens/solidity-crud-part-1-824ffa69509a
 
 import "./Shopfront.sol";
+import "./SKULibrary.sol";
 
 contract Merchant {
 	struct Product {
@@ -25,15 +26,17 @@ contract Merchant {
 
 	// global state variables
 	address public owner;
+	address public merch;
 	Shopfront public sf;
+	SKULibrary public sl;
 
 	event AddedProduct(uint256 id, uint256 price, string desc, uint256 refCount, bytes32 ph);
 	event RemovedProduct(uint256 id, uint256 price, string desc, uint256 refCount, bytes32 ph);
 
-	// additions or updates can only be made by owner or an authorized merchant
+	// additions or updates can only be made by owner or the merchant
 	modifier onlyByAuthorized()
 	{
-		require(sf.isMerchant(msg.sender) || msg.sender == owner);
+		require(msg.sender == merch || msg.sender == owner);
 		_;
 	}
 
@@ -44,9 +47,11 @@ contract Merchant {
 		_;
 	}
 
-	function SKULibrary(address sfAddress) {
+	function Merchant(address mAddress, address sfAddress, address slAddress) {
 		owner = msg.sender;
+		merch = mAddress;
 		sf = Shopfront(sfAddress);
+		sl = SKULibrary(slAddress);
 	}
 
 	// based on: https://ethereum.stackexchange.com/questions/11039/how-can-you-check-if-a-string-is-empty-in-solidity
@@ -58,6 +63,22 @@ contract Merchant {
 		}
 
 		return false;
+	}
+
+	function purchase() public payable {
+
+	}
+
+	function coPurchase() public constant {
+
+	}
+
+	function coPay() public payable {
+
+	}
+
+	function withdraw() public {
+
 	}
 
 	function addProduct(uint256 price, string desc) 
@@ -105,7 +126,7 @@ contract Merchant {
 	}
 
 	function kill() public onlyByOwner() {
-		selfdestruct(owner);
+		selfdestruct(merch);
 	}
 
 	function productHash(uint256 price, string desc)
