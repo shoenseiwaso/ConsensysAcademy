@@ -12,13 +12,12 @@ import "./Merchant.sol";
 
 contract SKULibrary {
 	struct Product {
-		uint256 price;
 		string desc;
 		uint256 refCount;
 		bytes32 ph;
 	}
 
-	// The "primary key" for a product is hash(price + desc).
+	// The "primary key" for a product is hash(desc).
 	// If a merchant wants to change the price of an item,
 	// they need to remove it and add it with the new price.
 	mapping (bytes32 => uint256) public productHashToId;
@@ -28,8 +27,8 @@ contract SKULibrary {
 	address public owner;
 	Shopfront public sf;
 
-	event AddedProduct(uint256 id, uint256 price, string desc, uint256 refCount, bytes32 ph);
-	event RemovedProduct(uint256 id, uint256 price, string desc, uint256 refCount, bytes32 ph);
+	event AddedProduct(uint256 id, string desc, uint256 refCount, bytes32 ph);
+	event RemovedProduct(uint256 id, string desc, uint256 refCount, bytes32 ph);
 
 	// additions or updates can only be made by owner or an authorized merchant
 	modifier onlyByAuthorized()
@@ -61,13 +60,13 @@ contract SKULibrary {
 		return false;
 	}
 
-	function addProduct(uint256 price, string desc) 
+	function addProduct(string desc) 
 		public
 		onlyByAuthorized()
 	{
 		bool exists = false;
 		uint256 id = 0;
-		bytes32 ph = productHash(price, desc);
+		bytes32 ph = productHash(desc);
 		
 		(exists, id) = getProductId(ph);
 
@@ -75,14 +74,14 @@ contract SKULibrary {
 			// product already exists, just update the reference counter
 			catalog[id].refCount++;
 		} else {
-			Product memory p = Product(price, desc, 1, ph);
+			Product memory p = Product(desc, 1, ph);
 
 			// update index array and catalog in one step, saving on gas
 			productHashToId[ph] = catalog.push(p) - 1;
 			id = catalog.length - 1;
 		}
 
-		AddedProduct(id, price, desc, catalog[id].refCount, ph);
+		AddedProduct(id, desc, catalog[id].refCount, ph);
 	}
 
 	function removeProduct(uint256 id)
@@ -102,19 +101,19 @@ contract SKULibrary {
 
 		Product memory p = catalog[id];
 
-		RemovedProduct(id, p.price, p.desc, p.refCount, p.ph);
+		RemovedProduct(id, p.desc, p.refCount, p.ph);
 	}
 
 	function kill() public onlyByOwner() {
 		selfdestruct(owner);
 	}
 
-	function productHash(uint256 price, string desc)
+	function productHash(string desc)
 		public
 		constant
 		returns(bytes32 ph)
 	{
-		return keccak256(price, desc);
+		return keccak256(desc);
 	}
 
 	// check if this product exists
@@ -165,7 +164,6 @@ contract SKULibrary {
 		public
 		constant
 		returns(
-			uint256 price,
 			string desc,
 			uint256 refCount,
 			bytes32 ph)
@@ -175,6 +173,6 @@ contract SKULibrary {
 
 		Product memory p = catalog[id];
 
-		return (p.price, p.desc, p.refCount, p.ph);
+		return (p.desc, p.refCount, p.ph);
 	}
 }
