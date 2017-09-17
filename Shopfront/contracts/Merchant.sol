@@ -12,16 +12,12 @@ import "./SKULibrary.sol";
 
 contract Merchant {
 	struct Product {
+		uint256 skuId;
 		uint256 price;
-		string desc;
-		uint256 refCount;
-		bytes32 ph;
+		uint256 stock;
 	}
 
-	// The "primary key" for a product is hash(price + desc).
-	// If a merchant wants to change the price of an item,
-	// they need to remove it and add it with the new price.
-	mapping (bytes32 => uint256) public productHashToId;
+	mapping (uint256 => bool) productActive;
 	Product[] public catalog;
 
 	// global state variables
@@ -30,8 +26,8 @@ contract Merchant {
 	Shopfront public sf;
 	SKULibrary public sl;
 
-	event AddedProduct(uint256 id, uint256 price, string desc, uint256 refCount, bytes32 ph);
-	event RemovedProduct(uint256 id, uint256 price, string desc, uint256 refCount, bytes32 ph);
+	event AddedProduct(uint256 id, string desc, uint256 price, uint256 stock);
+	event RemovedProduct(uint256 id, string desc, uint256 price, uint256 stock);
 
 	// additions or updates can only be made by owner or the merchant
 	modifier onlyByAuthorized()
@@ -81,24 +77,39 @@ contract Merchant {
 
 	}
 
-	function addProduct(uint256 price, string desc) 
+	function addProduct(string desc, uint256 price, uint256 stock) 
 		public
 		onlyByAuthorized()
 	{
+		// get SKU id from description
+		bool exists = false;
+		uint256 id = 0;
+		(exists, id) = sl.getSKUIdFromDesc(desc);
+
+		// if SKU id not present in library, add
+		if (!exists) {
+			id = sl.addSKU(desc);
+		}
+
+		// if we have this SKU id already in our catalog, simply update the price and stock
+
+
+		// otherwise add the product to our catalog
+
 		bool exists = false;
 		uint256 id = 0;
 		bytes32 ph = productHash(price, desc);
 		
-		(exists, id) = getProductId(ph);
+		(exists, id) = sl.getProductId(ph);
 
 		if (exists) {
 			// product already exists, just update the reference counter
-			catalog[id].refCount++;
+			// catalog[id].refCount++;
 		} else {
 			Product memory p = Product(price, desc, 1, ph);
 
 			// update index array and catalog in one step, saving on gas
-			productHashToId[ph] = catalog.push(p) - 1;
+			catalog.push(p);
 			id = catalog.length - 1;
 		}
 
@@ -147,9 +158,9 @@ contract Merchant {
 			return false;
 		}
 
-		if (productHashToId[catalog[id].ph] == id) {
-			return true;
-		}
+		// if (productHashToId[catalog[id].ph] == id) {
+		// 	return true;
+		// }
 
 		return false;
 	}
@@ -164,7 +175,7 @@ contract Merchant {
 			return (false, 0);
 		}
 
-		id = productHashToId[ph];
+		// id = productHashToId[ph];
 
 		if (catalog[id].ph == ph) {
 			return (true, id);

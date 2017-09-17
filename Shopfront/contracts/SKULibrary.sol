@@ -11,24 +11,24 @@ import "./Shopfront.sol";
 import "./Merchant.sol";
 
 contract SKULibrary {
-	struct Product {
+	struct SKU {
 		string desc;
 		uint256 refCount;
 		bytes32 ph;
 	}
 
-	// The "primary key" for a product is hash(desc).
+	// The "primary key" for a SKU is hash(desc).
 	// If a merchant wants to change the price of an item,
 	// they need to remove it and add it with the new price.
-	mapping (bytes32 => uint256) public productHashToId;
-	Product[] public catalog;
+	mapping (bytes32 => uint256) public skuHashToId;
+	SKU[] public catalog;
 
 	// global state variables
 	address public owner;
 	Shopfront public sf;
 
-	event AddedProduct(uint256 id, string desc, uint256 refCount, bytes32 ph);
-	event RemovedProduct(uint256 id, string desc, uint256 refCount, bytes32 ph);
+	event AddedSKU(uint256 id, string desc, uint256 refCount, bytes32 ph);
+	event RemovedSKU(uint256 id, string desc, uint256 refCount, bytes32 ph);
 
 	// additions or updates can only be made by owner or an authorized merchant
 	modifier onlyByAuthorized()
@@ -60,55 +60,57 @@ contract SKULibrary {
 		return false;
 	}
 
-	function addProduct(string desc) 
+	function addSKU(string desc) 
 		public
 		onlyByAuthorized()
+		returns(uint256 id)
 	{
 		bool exists = false;
-		uint256 id = 0;
-		bytes32 ph = productHash(desc);
+		bytes32 ph = skuHash(desc);
 		
-		(exists, id) = getProductId(ph);
+		(exists, id) = getSKUIdFromPH(ph);
 
 		if (exists) {
-			// product already exists, just update the reference counter
+			// SKU already exists, just update the reference counter
 			catalog[id].refCount++;
 		} else {
-			Product memory p = Product(desc, 1, ph);
+			SKU memory s = SKU(desc, 1, ph);
 
 			// update index array and catalog in one step, saving on gas
-			productHashToId[ph] = catalog.push(p) - 1;
+			skuHashToId[ph] = catalog.push(s) - 1;
 			id = catalog.length - 1;
 		}
 
-		AddedProduct(id, desc, catalog[id].refCount, ph);
+		AddedSKU(id, desc, catalog[id].refCount, ph);
+
+		return id;
 	}
 
-	function removeProduct(uint256 id)
+	function removeSKU(uint256 id)
 		public
 		onlyByAuthorized()
 	{
-		require(productExists(id));
+		require(skuExists(id));
 		require(catalog[id].refCount > 0);
 
-		// Verify that this merchant stocks this product.
+		// Verify that this merchant stocks this SKU.
 		// Accounting is done on the merchant contract on purpose
 		// to simplify stock quantity accounting.
 		Merchant m = Merchant(msg.sender);
-		require(m.productExists(id));
+		require(m.skuExists(id));
 
 		catalog[id].refCount--;
 
-		Product memory p = catalog[id];
+		SKU memory s = catalog[id];
 
-		RemovedProduct(id, p.desc, p.refCount, p.ph);
+		RemovedSKU(id, s.desc, s.refCount, s.ph);
 	}
 
 	function kill() public onlyByOwner() {
 		selfdestruct(owner);
 	}
 
-	function productHash(string desc)
+	function skuHash(string desc)
 		public
 		constant
 		returns(bytes32 ph)
@@ -116,8 +118,8 @@ contract SKULibrary {
 		return keccak256(desc);
 	}
 
-	// check if this product exists
-	function productExists(uint256 id)
+	// check if this SKU exists
+	function skuExists(uint256 id)
 		public
 		constant
 		returns(bool exists)
@@ -126,15 +128,15 @@ contract SKULibrary {
 			return false;
 		}
 
-		if (productHashToId[catalog[id].ph] == id) {
+		if (skuHashToId[catalog[id].ph] == id) {
 			return true;
 		}
 
 		return false;
 	}
 
-	// check if this product exists and if so, return its id
-	function getProductId(bytes32 ph)
+	// check if this SKU exists by hash and if so, return its id
+	function getSKUIdFromPH(bytes32 ph)
 		public
 		constant
 		returns(bool exists, uint256 id)
@@ -143,7 +145,7 @@ contract SKULibrary {
 			return (false, 0);
 		}
 
-		id = productHashToId[ph];
+		id = skuHashToId[ph];
 
 		if (catalog[id].ph == ph) {
 			return (true, id);
@@ -152,7 +154,28 @@ contract SKULibrary {
 		return (false, 0);
 	}
 
-	function getProductCount()
+	// check if this SKU exists by description and if so, return its id
+	function getSKUIdFromDesc(string desc)
+		public
+		constant
+		returns(bool exists, uint256 id)
+	{
+		bytes32 ph = skuHash(desc);
+
+		if (catalog.length == 0) {
+			return (false, 0);
+		}
+
+		id = skuHashToId[ph];
+
+		if (catalog[id].ph == ph) {
+			return (true, id);
+		}
+
+		return (false, 0);
+	}
+
+	function getSKUCount()
 		public
 		constant
 		returns(uint count)
@@ -160,7 +183,7 @@ contract SKULibrary {
 		return catalog.length;
 	}
 
-	function getProductById(uint id)
+	function getSKUById(uint id)
 		public
 		constant
 		returns(
@@ -171,8 +194,8 @@ contract SKULibrary {
 		// ensure this catalog entry exists
 		require(id < catalog.length);
 
-		Product memory p = catalog[id];
+		SKU memory s = catalog[id];
 
-		return (p.desc, p.refCount, p.ph);
+		return (s.desc, s.refCount, s.ph);
 	}
 }
