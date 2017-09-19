@@ -18,6 +18,9 @@ contract Shopfront {
 
 	mapping (address => MerchantStruct) public merchants;
 
+	// Reverse lookup needed by isMerchant() which is in turn used by SKULibrary.
+	mapping (address => bool) public merchantContracts;
+
 	// global state variables
 	address public owner;
 	address public sl;
@@ -43,8 +46,12 @@ contract Shopfront {
 		_;
 	}
 
-	function isMerchant(address merchAddress) public returns (bool exists) {
-		return true;
+	function isMerchant(address merchContract) public returns (bool exists) {
+		if (merchantContracts[merchContract]) {
+			return true;
+		}
+
+		return false;
 	}
 
 	function addMerchant(address merchOwner) public onlyByOwner() {
@@ -53,6 +60,9 @@ contract Shopfront {
 
 		merchants[merchOwner].merchContract = new Merchant(owner, merchOwner, sl, ownerFee);
 		merchants[merchOwner].active = true;
+
+		// add reverse lookup entry
+		merchantContracts[merchants[merchOwner].merchContract] = true;
 
 		AddedMerchant(owner, merchOwner, merchants[merchOwner].merchContract, ownerFee);
 	}
@@ -63,6 +73,9 @@ contract Shopfront {
 		require(merchants[merchOwner].active);
 
 		merchants[merchOwner].active = false;
+
+		// deactivate reverse lookup entry
+		merchantContracts[merchants[merchOwner].merchContract] = false;
 
 		// this is quite destructive but at least it refunds the merchant
 		Merchant m = Merchant(merchants[merchOwner].merchContract);
