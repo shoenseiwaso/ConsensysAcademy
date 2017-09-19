@@ -27,6 +27,7 @@ contract Merchant {
 	Shopfront public sf;
 	SKULibrary public sl;
 
+	event IssueReceipt(address merch, address customer, uint skuId, uint256 quantity, uint256 price, uint256 totalDue, uint256 changeDue);
 	event AddedProduct(uint256 id, uint256 skuId, string desc, uint256 price, uint256 stock);
 	event RemovedProduct(uint256 id, uint256 skuId, uint256 price, uint256 stock);
 
@@ -62,8 +63,32 @@ contract Merchant {
 		return false;
 	}
 
-	function purchase() public payable {
+	function purchase(uint256 skuId, uint256 quantity) public payable {
+		bool exists = false;
+		uint256 id = 0;
 
+		(exists, id) = getProductId(skuId);
+
+		require(exists);
+		require(products[id].active);
+		require(products[id].stock >= quantity);
+
+		uint256 totalDue = products[id].price * quantity;
+
+		require(msg.value >= totalDue);
+
+		uint256 changeDue = msg.value - totalDue;
+
+		products[id].stock -= quantity;
+
+		// "ship" the product; presumably an off-chain oracle would be watching
+		// these events and initiate the fulfillment process
+		IssueReceipt(msg.sender, merch, skuId, quantity, products[id].price, totalDue, changeDue);
+		FulfillOrder(skuId, quantity, msg.sen);
+
+		if (change > 0) {
+			msg.sender.transfer(changeDue);
+		}
 	}
 
 	function coPurchase() public constant {
