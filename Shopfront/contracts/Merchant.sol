@@ -226,12 +226,9 @@ contract Merchant {
 		bool exists = false;
 		uint256 skuId = 0;
 		uint256 id = 0;
-		(exists, skuId) = sl.getSKUIdFromDesc(desc);
 
-		// if SKU id not present in library, add
-		if (!exists) {
-			skuId = sl.addSKU(desc);
-		}
+		// add SKU - either it's new, or increase reference counter
+		skuId = sl.addSKU(desc);
 
 		(exists, id) = getProductId(skuId);
 
