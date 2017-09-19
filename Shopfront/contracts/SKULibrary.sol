@@ -44,9 +44,9 @@ contract SKULibrary {
 		_;
 	}
 
-	function SKULibrary(address sfAddress) {
-		owner = msg.sender;
-		sf = Shopfront(sfAddress);
+	function SKULibrary(address sfOwner) {
+		owner = sfOwner;
+		sf = Shopfront(msg.sender);
 	}
 
 	// based on: https://ethereum.stackexchange.com/questions/11039/how-can-you-check-if-a-string-is-empty-in-solidity

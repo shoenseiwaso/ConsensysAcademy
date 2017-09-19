@@ -61,17 +61,17 @@ contract Merchant {
 		_;
 	}
 
-	// only the owner can kill the whole contract
-	modifier onlyByOwner()
+	// only the owner can kill the whole contract, via the Shopfront contract
+	modifier onlyByShopfront()
 	{
 		require(msg.sender == owner);
 		_;
 	}
 
-	function Merchant(address mAddress, address sfAddress, address slAddress, uint256 _sfFee) {
-		owner = msg.sender;
+	function Merchant(address sfOwner, address mAddress, address slAddress, uint256 _sfFee) {
+		owner = sfOwner;
 		merch = mAddress;
-		sf = Shopfront(sfAddress);
+		sf = Shopfront(msg.sender);
 		sl = SKULibrary(slAddress);
 		sfFee = _sfFee;
 	}
@@ -141,7 +141,7 @@ contract Merchant {
 		coPayId = keccak256(msg.sender, skuId, quantity, block.number);
 
 		// ensure this co-pay ID not already taken (i.e., duplicate calls in the same block)
-		require(coPays[coPayId].initiator != msg.sender);
+		require(coPays[coPayId].initiator == address(0));
 
 		// ensure the product exists and there is sufficient stock
 		bool exists = false;
@@ -269,17 +269,14 @@ contract Merchant {
 		products[id].active = false;
 
 		// Verify that this merchant stocks this product.
-		// Accounting is done on the merchant contract on purpose
-		// to simplify stock quantity accounting.
-		Merchant m = Merchant(msg.sender);
-		require(m.productExists(id));
+		require(productExists(id));
 
 		Product memory p = products[id];
 
 		RemovedProduct(id, skuId, p.price, p.stock);
 	}
 
-	function kill() public onlyByOwner() {
+	function removeMerchant() public onlyByShopfront() {
 		selfdestruct(merch);
 	}
 
