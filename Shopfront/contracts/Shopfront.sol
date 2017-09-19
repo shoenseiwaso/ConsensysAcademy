@@ -27,7 +27,7 @@ contract Shopfront {
 	uint256 public ownerFee;
 
 	event AddedMerchant(address ownerAddress, address merchOwner, address merchContract, uint256 sfFee);
-	event RemovedMerchant(address ownerAddress, address merchOwner, address merchContracte);
+	event RemovedMerchant(address ownerAddress, address merchOwner, address merchContract);
 	event OwnerWithdraw(address ownerAddress, uint256 amount);
 
 	// TBD: do we need this to prevent some kind of weird overriding scenario?
