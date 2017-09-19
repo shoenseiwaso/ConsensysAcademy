@@ -27,7 +27,8 @@ contract Merchant {
 	Shopfront public sf;
 	SKULibrary public sl;
 
-	event IssueReceipt(address merch, address customer, uint skuId, uint256 quantity, uint256 price, uint256 totalDue, uint256 changeDue);
+	event IssueReceipt(address merchant, address customer, uint skuId, uint256 quantity, uint256 price, uint256 totalDue, uint256 changeDue);
+	event FulfillOrder(address merchant, address customer, uint skuId, uint256 quantity);
 	event AddedProduct(uint256 id, uint256 skuId, string desc, uint256 price, uint256 stock);
 	event RemovedProduct(uint256 id, uint256 skuId, uint256 price, uint256 stock);
 
@@ -81,12 +82,12 @@ contract Merchant {
 
 		products[id].stock -= quantity;
 
-		// "ship" the product; presumably an off-chain oracle would be watching
+		// Issue a receipt and "ship" the product; presumably an off-chain oracle would be watching
 		// these events and initiate the fulfillment process
-		IssueReceipt(msg.sender, merch, skuId, quantity, products[id].price, totalDue, changeDue);
-		FulfillOrder(skuId, quantity, msg.sen);
+		IssueReceipt(merch, msg.sender, skuId, quantity, products[id].price, totalDue, changeDue);
+		FulfillOrder(merch, msg.sender, skuId, quantity);
 
-		if (change > 0) {
+		if (changeDue > 0) {
 			msg.sender.transfer(changeDue);
 		}
 	}
