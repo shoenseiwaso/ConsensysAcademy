@@ -223,25 +223,28 @@ contract Merchant {
 		onlyByAuthorized()
 	{
 		// get SKU id from description
-		bool exists = false;
+		bool skuExists = false;
+		bool prodExists = false;
 		uint256 skuId = 0;
 		uint256 id = 0;
-		(exists, skuId) = sl.getSKUIdFromDesc(desc);
+		(skuExists, skuId) = sl.getSKUIdFromDesc(desc);
 
 		// if SKU id not present in library, add
-		if (!exists) {
+		if (!skuExists) {
 			skuId = sl.addSKU(desc);
 		}
 
-		(exists, id) = getProductId(skuId);
+		(prodExists, id) = getProductId(skuId);
 
-		if (exists) {
+		if (prodExists) {
 			// if we have this SKU id already in our catalog, simply update the price and stock	
 			products[id].price = price;
 			products[id].stock = stock;
 		} else {
-			// update SKU reference counter
-			skuId = sl.addSKU(desc);
+			// update SKU reference counter only if product didn't exist
+			if (!prodExists && skuExists) {
+				skuId = sl.addSKU(desc);
+			}
 			
 			// otherwise add the product to our catalog
 			Product memory p = Product(skuId, price, stock, true);
