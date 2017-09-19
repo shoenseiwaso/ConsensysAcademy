@@ -186,10 +186,13 @@ contract Merchant {
 			coPays[coPayId].paid += msg.value;
 
 			CoPayment(merch, msg.sender, coPayId, msg.value, coPays[coPayId].paid);
+
+			return;
 		}
 
 		// last payment, complete the purchase
 		uint256 changeDue = msg.value - (coPays[coPayId].totalDue - coPays[coPayId].paid);
+		coPays[coPayId].paid = coPays[coPayId].totalDue;
 
 		// Pay the Shopfront owner fee directly now.
 		// See above for additional comments.
