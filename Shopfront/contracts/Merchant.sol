@@ -226,9 +226,12 @@ contract Merchant {
 		bool exists = false;
 		uint256 skuId = 0;
 		uint256 id = 0;
+		(exists, skuId) = sl.getSKUIdFromDesc(desc);
 
-		// add SKU - either it's new, or increase reference counter
-		skuId = sl.addSKU(desc);
+		// if SKU id not present in library, add
+		if (!exists) {
+			skuId = sl.addSKU(desc);
+		}
 
 		(exists, id) = getProductId(skuId);
 
@@ -237,6 +240,9 @@ contract Merchant {
 			products[id].price = price;
 			products[id].stock = stock;
 		} else {
+			// update SKU reference counter
+			skuId = sl.addSKU(desc);
+			
 			// otherwise add the product to our catalog
 			Product memory p = Product(skuId, price, stock, true);
 
