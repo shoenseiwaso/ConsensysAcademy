@@ -19,7 +19,7 @@ $ ./launch-testnet.sh
 
 Given time constraints for this project, I did not implement stretch goals of cross-token payment nor any sort of web interface. Co-payment by multiple parties, merchant contracts and a separate SKU library are implemented in a hub/spoke model.
 
-The contracts were tested manually via Remix. See below for a sample screenshot of product addition and payment events firing.
+The contracts were tested manually via Remix. See below for a sample screenshot of product addition and co-payment events firing.
 
 ![Debugging Shopfront contracts in Remix](shopfront-remix-testing.png)
 
