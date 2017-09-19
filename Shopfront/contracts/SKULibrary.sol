@@ -97,7 +97,7 @@ contract SKULibrary {
 		// Accounting is done on the merchant contract on purpose
 		// to simplify stock quantity accounting.
 		Merchant m = Merchant(msg.sender);
-		require(m.skuExists(id));
+		require(m.productExists(id));
 
 		catalog[id].refCount--;
 

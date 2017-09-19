@@ -15,10 +15,11 @@ contract Merchant {
 		uint256 skuId;
 		uint256 price;
 		uint256 stock;
+		bool active;
 	}
 
-	mapping (uint256 => bool) productActive;
-	Product[] public catalog;
+	mapping (uint256 => uint256) skuIdToProdId;
+	Product[] public products;
 
 	// global state variables
 	address public owner;
@@ -26,8 +27,8 @@ contract Merchant {
 	Shopfront public sf;
 	SKULibrary public sl;
 
-	event AddedProduct(uint256 id, string desc, uint256 price, uint256 stock);
-	event RemovedProduct(uint256 id, string desc, uint256 price, uint256 stock);
+	event AddedProduct(uint256 id, uint256 skuId, string desc, uint256 price, uint256 stock);
+	event RemovedProduct(uint256 id, uint256 skuId, uint256 price, uint256 stock);
 
 	// additions or updates can only be made by owner or the merchant
 	modifier onlyByAuthorized()
@@ -83,45 +84,49 @@ contract Merchant {
 	{
 		// get SKU id from description
 		bool exists = false;
+		uint256 skuId = 0;
 		uint256 id = 0;
-		(exists, id) = sl.getSKUIdFromDesc(desc);
+		(exists, skuId) = sl.getSKUIdFromDesc(desc);
 
 		// if SKU id not present in library, add
 		if (!exists) {
-			id = sl.addSKU(desc);
+			skuId = sl.addSKU(desc);
 		}
 
-		// if we have this SKU id already in our catalog, simply update the price and stock
-
-
-		// otherwise add the product to our catalog
-
-		bool exists = false;
-		uint256 id = 0;
-		bytes32 ph = productHash(price, desc);
-		
-		(exists, id) = sl.getProductId(ph);
+		(exists, id) = getProductId(skuId);
 
 		if (exists) {
-			// product already exists, just update the reference counter
-			// catalog[id].refCount++;
+			// if we have this SKU id already in our catalog, simply update the price and stock	
+			products[id].price = price;
+			products[id].stock = stock;
 		} else {
-			Product memory p = Product(price, desc, 1, ph);
+			// otherwise add the product to our catalog
+			Product memory p = Product(skuId, price, stock, true);
 
-			// update index array and catalog in one step, saving on gas
-			catalog.push(p);
-			id = catalog.length - 1;
+			// slight gas savings by doing this in one step
+			skuIdToProdId[skuId] = products.push(p) - 1;
+
+			id = products.length - 1;
 		}
 
-		AddedProduct(id, price, desc, catalog[id].refCount, ph);
+		AddedProduct(id, skuId, desc, price, stock);
 	}
 
-	function removeProduct(uint256 id)
+	function removeProduct(uint256 skuId)
 		public
 		onlyByAuthorized()
 	{
-		require(productExists(id));
-		require(catalog[id].refCount > 0);
+		bool exists = false;
+		uint256 id = 0;
+
+		(exists, id) = getProductId(skuId);
+
+		require(exists);
+		require(products[id].active);
+
+		sl.removeSKU(skuId);
+
+		products[id].active = false;
 
 		// Verify that this merchant stocks this product.
 		// Accounting is done on the merchant contract on purpose
@@ -129,56 +134,48 @@ contract Merchant {
 		Merchant m = Merchant(msg.sender);
 		require(m.productExists(id));
 
-		catalog[id].refCount--;
+		Product memory p = products[id];
 
-		Product memory p = catalog[id];
-
-		RemovedProduct(id, p.price, p.desc, p.refCount, p.ph);
+		RemovedProduct(id, skuId, p.price, p.stock);
 	}
 
 	function kill() public onlyByOwner() {
 		selfdestruct(merch);
 	}
 
-	function productHash(uint256 price, string desc)
-		public
-		constant
-		returns(bytes32 ph)
-	{
-		return keccak256(price, desc);
-	}
-
 	// check if this product exists
-	function productExists(uint256 id)
+	function productExists(uint256 skuId)
 		public
 		constant
 		returns(bool exists)
 	{
-		if (catalog.length == 0) {
+		if (products.length == 0) {
 			return false;
 		}
 
-		// if (productHashToId[catalog[id].ph] == id) {
-		// 	return true;
-		// }
+		uint256 id = skuIdToProdId[skuId];
+
+		if (products[id].skuId == skuId && products[id].active) {
+		 	return true;
+		}
 
 		return false;
 	}
 
 	// check if this product exists and if so, return its id
-	function getProductId(bytes32 ph)
+	function getProductId(uint256 skuId)
 		public
 		constant
 		returns(bool exists, uint256 id)
 	{
-		if (catalog.length == 0) {
+		if (products.length == 0) {
 			return (false, 0);
 		}
 
-		// id = productHashToId[ph];
+		id = skuIdToProdId[skuId];
 
-		if (catalog[id].ph == ph) {
-			return (true, id);
+		if (products[id].skuId == skuId && products[id].active) {
+		 	return (true, id);
 		}
 
 		return (false, 0);
@@ -189,23 +186,23 @@ contract Merchant {
 		constant
 		returns(uint count)
 	{
-		return catalog.length;
+		return products.length;
 	}
 
 	function getProductById(uint id)
 		public
 		constant
 		returns(
+			uint256 skuId,
 			uint256 price,
-			string desc,
-			uint256 refCount,
-			bytes32 ph)
+			uint256 stock,
+			bool active)
 	{
 		// ensure this catalog entry exists
-		require(id < catalog.length);
+		require(id < products.length);
 
-		Product memory p = catalog[id];
+		Product memory p = products[id];
 
-		return (p.price, p.desc, p.refCount, p.ph);
+		return (p.skuId, p.price, p.stock, p.active);
 	}
 }
