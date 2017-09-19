@@ -274,9 +274,6 @@ contract Merchant {
 
 		products[id].active = false;
 
-		// Verify that this merchant stocks this product.
-		require(productExists(id));
-
 		Product memory p = products[id];
 
 		RemovedProduct(id, skuId, p.price, p.stock);
