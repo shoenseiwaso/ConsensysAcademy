@@ -175,37 +175,36 @@ contract Merchant {
 		// validate coPayId (implicitly) and passed parameters
 		require(coPays[coPayId].initiator == initiator);
 
+		// need to pay something
+		require(msg.value > 0);
+
 		// ensure co-pay has not been completed
 		require(coPays[coPayId].totalDue - coPays[coPayId].paid > 0);
 
-		// We're okay if there's actually no value transferred (usually only if new co-pay).
-		// Could be someone setting up a gift registry, for example.
-		if (msg.value > 0) {
-			// partial payment; credit it and return
-			if (msg.value + coPays[coPayId].paid < coPays[coPayId].totalDue) {
-				coPays[coPayId].paid += msg.value;
+		// partial payment; credit it and return
+		if (msg.value + coPays[coPayId].paid < coPays[coPayId].totalDue) {
+			coPays[coPayId].paid += msg.value;
 
-				CoPayment(merch, msg.sender, coPayId, msg.value, coPays[coPayId].paid);
-			}
+			CoPayment(merch, msg.sender, coPayId, msg.value, coPays[coPayId].paid);
+		}
 
-			// last payment, complete the purchase
-			uint256 changeDue = msg.value - (coPays[coPayId].totalDue - coPays[coPayId].paid);
+		// last payment, complete the purchase
+		uint256 changeDue = msg.value - (coPays[coPayId].totalDue - coPays[coPayId].paid);
 
-			// Pay the Shopfront owner fee directly now.
-			// See above for additional comments.
-			uint256 sfFeeDue = coPays[coPayId].totalDue / sfFee;
-			if (sfFeeDue >= msg.value - changeDue && sfFeeDue > 0) {
-				owner.transfer(sfFeeDue);
-			}
+		// Pay the Shopfront owner fee directly now.
+		// See above for additional comments.
+		uint256 sfFeeDue = coPays[coPayId].totalDue / sfFee;
+		if (sfFeeDue >= msg.value - changeDue && sfFeeDue > 0) {
+			owner.transfer(sfFeeDue);
+		}
 
-			// Issue a receipt and "ship" the product; presumably an off-chain oracle would be watching
-			// these events and initiate the fulfillment process
-			IssueReceipt(merch, coPays[coPayId].initiator, coPays[coPayId].skuId, coPays[coPayId].quantity, coPays[coPayId].price, coPays[coPayId].totalDue, changeDue);
-			FulfillOrder(merch, coPays[coPayId].initiator, coPays[coPayId].skuId, coPays[coPayId].quantity);
+		// Issue a receipt and "ship" the product; presumably an off-chain oracle would be watching
+		// these events and initiate the fulfillment process
+		IssueReceipt(merch, coPays[coPayId].initiator, coPays[coPayId].skuId, coPays[coPayId].quantity, coPays[coPayId].price, coPays[coPayId].totalDue, changeDue);
+		FulfillOrder(merch, coPays[coPayId].initiator, coPays[coPayId].skuId, coPays[coPayId].quantity);
 
-			if (changeDue > 0) {
-				msg.sender.transfer(changeDue);
-			}
+		if (changeDue > 0) {
+			msg.sender.transfer(changeDue);
 		}
 	}
 
