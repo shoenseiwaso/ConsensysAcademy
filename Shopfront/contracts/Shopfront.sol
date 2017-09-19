@@ -26,11 +26,10 @@ contract Shopfront {
 	SKULibrary public sl;
 	uint256 public ownerFee;
 
-	event AddedMerchant(address ownerAddress, address merchOwner, address merchContract, uint256 sfFee);
-	event RemovedMerchant(address ownerAddress, address merchOwner, address merchContract);
-	event OwnerWithdraw(address ownerAddress, uint256 amount);
+	event AddedMerchant(address sender, address merchOwner, address merchContract, uint256 sfFee);
+	event RemovedMerchant(address sender, address merchOwner, address merchContract);
+	event OwnerWithdraw(address sender, uint256 amount);
 
-	// TBD: do we need this to prevent some kind of weird overriding scenario?
 	function Shopfront(uint256 _ownerFee) {
 		owner = msg.sender;
 		ownerFee = _ownerFee;
@@ -64,7 +63,7 @@ contract Shopfront {
 		// add reverse lookup entry
 		merchantContracts[merchants[merchOwner].merchContract] = true;
 
-		AddedMerchant(owner, merchOwner, merchants[merchOwner].merchContract, ownerFee);
+		AddedMerchant(msg.sender, merchOwner, merchants[merchOwner].merchContract, ownerFee);
 	}
 
 	function removeMerchant(address merchOwner) public onlyByOwner() {
@@ -81,14 +80,14 @@ contract Shopfront {
 		Merchant m = Merchant(merchants[merchOwner].merchContract);
 		m.removeMerchant();
 
-		RemovedMerchant(owner, merchOwner, merchants[merchOwner].merchContract);
+		RemovedMerchant(msg.sender, merchOwner, merchants[merchOwner].merchContract);
 	}
 
 	// Owner uses this to collect funds.
 	function withdraw() public onlyByOwner() {
 		require(this.balance > 0);
 
-		OwnerWithdraw(owner, this.balance);
+		OwnerWithdraw(msg.sender, this.balance);
 
 		owner.transfer(this.balance);
 	}
