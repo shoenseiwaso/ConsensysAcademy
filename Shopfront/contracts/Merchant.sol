@@ -18,7 +18,7 @@ contract Merchant {
 		bool active;
 	}
 
-	mapping (uint256 => uint256) skuIdToProdId;
+	mapping (uint256 => uint256) public skuIdToProdId;
 	Product[] public products;
 
 	struct CoPay {
@@ -30,7 +30,7 @@ contract Merchant {
 		uint256 paid;
 	}
 
-	mapping (bytes32 => CoPay) coPays;
+	mapping (bytes32 => CoPay) public coPays;
 
 	// global state variables
 	address public owner;
