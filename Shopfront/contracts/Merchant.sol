@@ -80,6 +80,7 @@ contract Merchant {
 
 		uint256 changeDue = msg.value - totalDue;
 
+		// do this now to avoid reentrant risk from msg.sender.transfer() below
 		products[id].stock -= quantity;
 
 		// Issue a receipt and "ship" the product; presumably an off-chain oracle would be watching
