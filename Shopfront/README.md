@@ -27,9 +27,9 @@ The contracts were tested manually via Remix. See below for a sample screenshot 
 
 The Shopfront is divided up into a series of smart contracts as follows.
 
-* **Shopfront.sol**: the master contract. Spawns merchant and SKU library contracts.
-* **SKULibrary.sol**: central library of products. Owner and merchants can add and remove products.
-* **Merchant.sol**: merchant contract spawned by Shopfront master. Sends a slice of each sale back to master Shopfront contract.
+* **[Shopfront.sol](https://github.com/shoenseiwaso/ConsensysAcademy/blob/master/Shopfront/contracts/Shopfront.sol)**: the master contract. Spawns merchant and SKU library contracts.
+* **[SKULibrary.sol](https://github.com/shoenseiwaso/ConsensysAcademy/blob/master/Shopfront/contracts/SKULibrary.sol)**: central library of products. Owner and merchants can add and remove products.
+* **[Merchant.sol](https://github.com/shoenseiwaso/ConsensysAcademy/blob/master/Shopfront/contracts/Merchant.sol)**: merchant contract spawned by Shopfront master. Sends a slice of each sale back to master Shopfront contract.
 
 ## Base requirements: Shopfront
 
