@@ -46,7 +46,7 @@ contract Shopfront {
 		_;
 	}
 
-	function isMerchant(address merchContract) public constant returns (bool exists) {
+	function isMerchantContract(address merchContract) public constant returns (bool exists) {
 		if (merchantContracts[merchContract]) {
 			return true;
 		}

@@ -33,7 +33,7 @@ contract SKULibrary {
 	// additions or updates can only be made by owner or an authorized merchant
 	modifier onlyByAuthorized()
 	{
-		require(sf.isMerchant(msg.sender) || msg.sender == owner);
+		require(sf.isMerchantContract(msg.sender) || msg.sender == owner);
 		_;
 	}
 
