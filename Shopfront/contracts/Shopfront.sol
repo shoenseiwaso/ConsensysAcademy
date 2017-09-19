@@ -46,11 +46,7 @@ contract Shopfront {
 	}
 
 	function isMerchantContract(address merchContract) public constant returns (bool exists) {
-		if (merchantContracts[merchContract]) {
-			return true;
-		}
-
-		return false;
+		return merchantContracts[merchContract];
 	}
 
 	function addMerchant(address merchOwner) public onlyByOwner() {
