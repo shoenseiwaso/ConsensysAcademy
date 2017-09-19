@@ -37,10 +37,10 @@ contract SKULibrary {
 		_;
 	}
 
-	// only the owner can kill the whole contract
-	modifier onlyByOwner()
+	// only the owner can kill the whole contract via the Shopfront contract
+	modifier onlyByShopfront()
 	{
-		require(msg.sender == owner);
+		require(msg.sender == address(sf));
 		_;
 	}
 
@@ -106,7 +106,7 @@ contract SKULibrary {
 		RemovedSKU(id, s.desc, s.refCount, s.ph);
 	}
 
-	function kill() public onlyByOwner() {
+	function kill() public onlyByShopfront() {
 		selfdestruct(owner);
 	}
 

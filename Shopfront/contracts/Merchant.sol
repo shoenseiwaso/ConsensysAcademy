@@ -64,7 +64,7 @@ contract Merchant {
 	// only the owner can kill the whole contract, via the Shopfront contract
 	modifier onlyByShopfront()
 	{
-		require(msg.sender == owner);
+		require(msg.sender == address(sf));
 		_;
 	}
 

@@ -23,7 +23,7 @@ contract Shopfront {
 
 	// global state variables
 	address public owner;
-	address public sl;
+	SKULibrary public sl;
 	uint256 public ownerFee;
 
 	event AddedMerchant(address ownerAddress, address merchOwner, address merchContract, uint256 sfFee);
@@ -93,8 +93,10 @@ contract Shopfront {
 		owner.transfer(this.balance);
 	}
 
-	// Does nothing to kill the SKULibrary or any merchant contracts.
+	// Does nothing to kill any merchant contracts.
 	function kill() onlyByOwner() {
+		sl.kill();
+
 		selfdestruct(owner);
 	}
 }
